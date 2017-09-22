@@ -3,7 +3,7 @@
 """
 Created on Mon Sep 18 22:07:46 2017
 
-@author: nicolaslelievre
+@author: The Digital Hare
 """
 
 
