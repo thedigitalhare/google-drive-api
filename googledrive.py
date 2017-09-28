@@ -28,7 +28,7 @@ except ImportError:
 def create_credentials(scope):
     """
     -------------------------------------------------------------------------------------------------
-    Description: Function that generates the credential file related to the scope provided
+    Generate the credential file related to the scope provided
     and store it the .credentials folder of the home directory
     
     Input-value: String taking one of the following values:
@@ -125,40 +125,31 @@ def create_credentials(scope):
 
 
 def get_credentials(scope):
-    """Gets valid user credentials from storage.
-
-    If nothing has been stored, or if the stored credentials are invalid,
-    the OAuth2 flow is completed to obtain the new credentials.
-
-    Returns:
-        Credentials, the obtained credential.
     """
-    home_dir = os.path.expanduser('~')
-    credential_dir = os.path.join(home_dir, '.credentials')
-    if not os.path.exists(credential_dir):
-        os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,
-                                   'google_drive_api_file.json')
-    
-    client_secret_path = os.path.join(credential_dir,
-                                      'client_secret_google_drive_api.json')
+    Return the google drive credentials of the scope
 
-    store = Storage(credential_path)
-    credentials = store.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(client_secret_path, scope)
-        flow.user_agent = 'Google Drive API Python'
-        if flags:
-            credentials = tools.run_flow(flow, store, flags)
-        else: # Needed only for compatibility with Python 2.6
-            credentials = tools.run(flow, store)
-        print('Storing credentials to ' + credential_path)
+    """
+    
+    if credentials_exist(scope):
+        
+        # Get the path of your home directory
+        home_dir = os.path.expanduser('~')
+            
+        # Get the path of the .credentials folder (in home directory)
+        credential_dir = os.path.join(home_dir, '.credentials')
+        
+        credential_name = "google_drive_api_scope_" + os.path.basename(scope).replace(".", "_") + ".json"
+        credential_path = os.path.join(credential_dir,credential_name)
+    
+        store = Storage(credential_path)
+        credentials = store.get()
+    
     return credentials
 
 def credentials_exist(scope):
     """
     -------------------------------------------------------------------------------------------------
-    Description: Check if the user have the credential of the scope provided
+    Check if the user have the credential of the scope provided
     
     Input-value: String taking one of the following values:
         - https://www.googleapis.com/auth/drive
@@ -247,19 +238,19 @@ def credentials_exist(scope):
               """
         print(text)
     
-    return(result)
+    return result
     
 
 def upload_file(file_path,folder_id):
     """
     -------------------------------------------------------------------------------------------------
-    Description: Upload a local file in one google drive folder and print its ID once uploaded
+    Upload a local file in a google drive folder
     
     Input-values:
         - file_path: String containing the path of the file to be uploaded
         - folder_id: String containing the id of the folder
     
-    Output-value: N/A
+    Output-value: "0BwwA4oUTeiV1TGRPeTVjaWRDY1E"
     
     Example: upload_file("/Users/TheDigitalHare/Images/picture1.jpg","0BwwA4oUTeiV1TGRPeTVjaWRDY1E")
     -------------------------------------------------------------------------------------------------
@@ -281,6 +272,44 @@ def upload_file(file_path,folder_id):
                                     media_body=media,
                                     fields='id').execute()
     
-    print('The ID of the uploaded file is: %s' % file.get('id'))
+    return file.get('id')
 
+
+def create_folder(folder_name,parent_folder_id):
+    """
+    -------------------------------------------------------------------------------------------------
+    Create a google drive folder in a google drive parent folder
+    
+    Input-values:
+       - folder_name: String containing the name of the folder to be created
+       - parent_folder_id: Id of the existing folder where the new folder will be created
+    
+    Output-value: "0BwwA4oUTeiV1TGRPeTVjaWRDY1E"
+    
+    Example: upload_file("myFolderName","0BwwA4oUTeiV1TGRPeTVjaWRDY1E")
+    -------------------------------------------------------------------------------------------------
+    """
+    credentials = get_credentials("https://www.googleapis.com/auth/drive.file")
+    http = credentials.authorize(httplib2.Http())
+    service = discovery.build('drive', 'v3', http=http)
+    
+    file_metadata = {
+    'name': folder_name,
+    'mimeType': 'application/vnd.google-apps.folder',
+    'parents': [parent_folder_id]}
+    
+    file = service.files().create(body=file_metadata,
+                                    fields='id').execute()
+    return file.get('id')
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
