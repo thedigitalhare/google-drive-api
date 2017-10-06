@@ -280,16 +280,14 @@ def SendMessage(sender, to, subject, message_text, file_paths=None):
     message['from'] = sender
     message['subject'] = subject
     
-    msg = MIMEText(message_text)
-    message.attach(msg)
+    body = MIMEText(message_text)
+    message.attach(body)
     
     if file_paths != None:
         
         for file_path in file_paths:
         
             content_type, encoding = mimetypes.guess_type(file_path)
-            
-            filename = os.path.basename(file_path)
             
             if content_type is None or encoding is not None:
                 content_type = 'application/octet-stream'
@@ -315,13 +313,14 @@ def SendMessage(sender, to, subject, message_text, file_paths=None):
             
             encoders.encode_base64(msg)
             
-            msg.add_header('Content-Disposition', 'attachment', filename=filename)
+            msg.add_header('Content-Disposition', 'attachment; filename=' + os.path.basename(file_path))
             message.attach(msg)
     
     raw = base64.urlsafe_b64encode(message.as_bytes())
     raw = raw.decode()
-    message = {'raw': raw}
-      
-    message = (service.users().messages().send(userId='me', body=message).execute())
     
-    return message['id']
+    final_message = {'raw': raw}
+    
+    email = service.users().messages().send(userId='me', body=final_message).execute()
+    
+    return email['id']
